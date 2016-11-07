@@ -12,62 +12,89 @@ class HpooComponent extends Component
   public $proxy         = null;
 
   public $baseUrl       = null;
-	public $login					= null,
+	public $login					= null;
 	public $password			= null;
 
   private $client       = null;
+	private $xcsrf				= null;
 
   public function __construct()
 	{
+		$this->xcsrf	= [];
     $this->client = new Client([
-				'baseUrl'					=> $this->baseUrl,
         'requestConfig'		=> ['format' => Client::FORMAT_JSON],
         'responseConfig'  => ['format' => Client::FORMAT_JSON],
       ]);
   }
 
-	public function flowRunAsync($uuid, $inputs = array()) {
+	public function flowRunAsync($uuid, $inputs = array())
+	{
+    $opts	= ['uuid'	=> $uuid];
 
-    $opts = array(
-        'uuid'    => $uuid,
-        );
-
-    if(count($inputs) > 0) {
+    if(count($inputs) > 0)
+		{
       $opts['inputs'] = $inputs;
     }
 
-    $rp = $this->rq->('post', '/executions', $opts);
+    $rp	= $this->rq('post', '/executions', $opts);
 
-		print_r($rp);
+		return $rp;
+	}
+
+	public function flowRunSync($uuid, $inputs = array())
+	{
+		$rp			= $this->flowRunAsync($uuid, $inputs);
+
+		if(!array_key_exists('executionId', $rp))
+		{
+			throw new \Exception(sprintf("No executionId in: %s", implode(",", $rp)));
+		}
+
+		$runid	= $rp['executionId'];
+
+		while(true)
+		{
+			$rp		= $this->flowStatus($runid);
+
+			if(!(array_key_exists('status', $rp) && $rp['status'] == 'RUNNING'))
+			{
+				break;
+			}
+
+			sleep(1);
+		}
+
+		return $rp;	
 
 	}
 
-  public function flowStatus($runid) {
-
-    $rp = $this->rq('get', sprintf("/executions?runId=%s", urlencode($runid)));
-
-		print_r($rp);
-
-#    return array_key_exists(0, $rp) ? $rp[0] : false;
-
+  public function flowStatus($runid)
+	{
+    $rp	= $this->rq('get', sprintf("/executions?runId=%s", urlencode($runid)));
+    return array_key_exists(0, $rp) ? $rp[0] : false;
   }
 
-  public function rq($method, $url, $opts = array()) {
+	public function flowLog($runid)
+	{
+    $rp	= $this->rq('get', sprintf("/executions/%s/execution-log", urlencode($runid)));
+    return $rp;
+	}
 
+  public function rq($method, $url, $opts = array())
+	{
 		$rq	= $this->client->createRequest()
 			->setMethod($method)
+			->setHeaders(['content-type' => 'application/json'])
 	    ->setUrl($this->baseUrl . $url)
 			->addHEaders(['Authorization' => 'Basic '.base64_encode(sprintf("%s:%s", $this->login, $this->password))]);
 
-#    if(array_key_exists('header', $this->xcsrf)
-#        && array_key_exists('header', $this->xcsrf)
-#        && array_key_exists('header', $this->xcsrf)) {
-#      $this->rq->setHeader('x-csrf-header', $this->xcsrf['header']);
-#      $this->rq->setHeader('x-csrf-param', $this->xcsrf['param']);
-#      $this->rq->setHeader('x-csrf-token', $this->xcsrf['token']);
-#    }
-
-#    $this->rq->setUrl(sprintf("%s/%s" , $this->url, $url));
+		foreach(['header', 'param', 'token'] as $key)
+		{
+	    if(array_key_exists($key, $this->xcsrf))
+			{
+				$rq->headers->set(sprintf("x-csrf-%s", $key), $this->xcsrf[$key]);
+			}
+		}
 
     if(count($opts) > 0) {
       $rq->setData($opts);
@@ -75,17 +102,20 @@ class HpooComponent extends Component
 
     $rp     = $rq->send();
 
-		print_r($rp->headers);
+		if($rp->isOk)
+		{
+			foreach(['header', 'param', 'token'] as $key)
+			{
+				if(!is_null($value = $rp->headers->get(sprintf("x-csrf-%s", $key)))) {
+					$this->xcsrf[$key]	= $value;
+				}
+			}
 
-
-#    $this->xcsrf['header']  = $rp->getHeader('x-csrf-header');
-#    $this->xcsrf['param'] = $rp->getHeader('x-csrf-param');
-#    $this->xcsrf['token'] = $rp->getHeader('x-csrf-token');
-#
-#    return json_decode($rp->getBody());
-
+			return $rp->data;
+		} else {
+			throw new \Exception(sprintf("Return Code: %s, Return: %s", $rp->getStatusCode(), $rp->content));
+		}
   }
-
 
 }
 
