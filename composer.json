@@ -1,0 +1,26 @@
+{
+	"name": "macfly/yii2-hpoo",
+	"description": "Component to enalbe access to HPOO REST API.",
+	"keywords": ["yii2", "HPE", "HP", "OO", "Operation Orchestration", "HP-OO", "Operation", "Orchestration"],
+	"type": "yii2-extension",
+	"license": "BSD-3-Clause",
+	"support": {
+		"issues": "https://github.com/Marty-Macfly/yii2-hpoo/issues",
+		"source": "https://github.com/Marty-Macfly/yii2-hpoo"
+	},
+	"authors": [
+		{
+			"name": "Charles DELFLY",
+			"email": "c.delfly@linkbynet.com"
+		}
+	],
+	"minimum-stability": "stable",
+	"require": {
+		"yiisoft/yii2": "~2.0.5"
+	},
+	"autoload": {
+		"psr-4": {
+			"macfly\\hpoo\\": "src/"
+		}
+	}
+}
