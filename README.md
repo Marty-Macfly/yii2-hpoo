@@ -4,7 +4,7 @@ This extension allows to run, get status and get output of a flow on [HP-OO v10.
 
 Requires:
 
-* Hp-OO: >= 10
+* Hp-OO: >= 10.60
 * php: >=5.4
 * yii2: >=2.0.1
 * yiisoft/yii2-httpclient: >= 2.0.1
@@ -34,7 +34,7 @@ return [
 	'components' => [
 		'hpoo' => [
 		'class' => 'macfly\hpoo\components\HpooComponent',
-		'url' => 'https://127.0.0.1:8443/oo/rest/v1', // HP-OO central url
+		'url' => 'https://127.0.0.1:8443/oo/rest/v2', // HP-OO central url
 		'login' => 'myaccount'							// An account with the right to trigger a flow
 		'password' => 'mypass'									// Password related to the account.
 		'timeout' => 5,                       // Conenction timeout (default: 5 seconds)

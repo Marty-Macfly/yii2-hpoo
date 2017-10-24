@@ -20,37 +20,34 @@ class HpooComponent extends Component
 
   public function __construct()
 	{
-		$this->xcsrf	= [];
+		$this->resetXcsrf();
     $this->client = new Client([
         'requestConfig'		=> ['format' => Client::FORMAT_JSON],
         'responseConfig'  => ['format' => Client::FORMAT_JSON],
       ]);
   }
 
+  public function resetXcsrf() {
+    $this->xcsrf  = [];
+  }
+
 	public function flowRunAsync($uuid, $inputs = array())
 	{
-    $opts	= ['uuid'	=> $uuid];
+    $opts	= ['flowUuid'	=> $uuid];
 
     if(count($inputs) > 0)
 		{
       $opts['inputs'] = $inputs;
     }
 
-    $rp	= $this->rq('post', '/executions', $opts);
+    $runid	= $this->rq('post', '/executions', $opts);
 
-		return $rp;
+		return $runid;
 	}
 
 	public function flowRunSync($uuid, $inputs = array())
 	{
-		$rp			= $this->flowRunAsync($uuid, $inputs);
-
-		if(!array_key_exists('executionId', $rp))
-		{
-			throw new \Exception(sprintf("No executionId in: %s", implode(",", $rp)));
-		}
-
-		$runid	= $rp['executionId'];
+		$runid			= $this->flowRunAsync($uuid, $inputs);
 
 		while(true)
 		{
@@ -70,7 +67,7 @@ class HpooComponent extends Component
 
   public function flowStatus($runid)
 	{
-    $rp	= $this->rq('get', sprintf("/executions?runId=%s", urlencode($runid)));
+    $rp	= $this->rq('get', sprintf("/executions/%s/summary", urlencode($runid)));
     return array_key_exists(0, $rp) ? $rp[0] : false;
   }
 
