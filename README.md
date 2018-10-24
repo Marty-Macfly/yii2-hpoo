@@ -13,7 +13,7 @@ Requires:
 
 As simple as download it
 
-```console
+```
 $ composer require macfly/yii2-hpoo "*"
 ```
 
@@ -51,7 +51,7 @@ return [
 
 Access to hpoo in your controller, or model:
 
-````php
+```php
 // Flow UUID
 $uuid = '1793b153-0ada-451e-93cd-143c3509e8a4';
 // FLOW input args if needed
@@ -74,4 +74,4 @@ print_r(Yii::$app->hpoo->flowRunAsync($rp['executionId']));
 // Get a flow output
 print_r(Yii::$app->hpoo->flowLog($rp['executionId']));
 
-````
+```

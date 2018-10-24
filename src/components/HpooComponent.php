@@ -38,21 +38,11 @@ class HpooComponent extends Component
      *
      * @param string $uuid id uniquely identifying the flow to run
      * @param array $inputs input of the flow
-     * @param string $runName explicite name of the run
-     * @param string $logLevel log level with which to run the flow
      * @return string|null return the flow exection id or null if failed
      */
-    public function flowRunAsync($uuid, $inputs = [], $runName = null, $logLevel = null)
+    public function flowRunAsync($uuid, $inputs = [])
     {
         $opts = ['flowUuid' => $uuid];
-
-        if ($runName !== null) {
-            $opts['runName'] = $runName;
-        }
-
-        if ($logLevel !== null) {
-            $opts['logLevel'] = $logLevel;
-        }
 
         if (count($inputs) > 0) {
             $opts['inputs'] = $inputs;
@@ -68,13 +58,11 @@ class HpooComponent extends Component
      *
      * @param string $uuid id uniquely identifying the flow to run
      * @param array $inputs input of the flow
-     * @param string $runName explicite name of the run
-     * @param string $logLevel log level with which to run the flow
      * @return array|null return the flow output
      */
-    public function flowRunSync($uuid, $inputs = [], $runName = null, $logLevel = null)
+    public function flowRunSync($uuid, $inputs = [])
     {
-        $runid = $this->flowRunAsync($uuid, $inputs, $runName, $logLevel);
+        $runid = $this->flowRunAsync($uuid, $inputs);
 
         while (true) {
             $rp	= $this->flowStatus($runid);
